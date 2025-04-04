@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SMV - Interactive Catalogue</title>
+  <style>
+    /* Reset & Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('SMV.jpeg') no-repeat center center fixed, linear-gradient(135deg, #1a2a6c, #b21f1f);
+      background-size: cover;
+      overflow: hidden;
+      color: #000;
+      position: relative;
+      height: 100vh;
+    }
+    /* Container for views */
+    .view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.5s ease;
+    }
+    /* Initially, floor selection view is visible; others are offscreen right */
+    #floorSelection {
+      transform: translateX(0);
+      display: flex;
+      flex-direction: row; /* Changed to row for two-division layout */
+      justify-content: center;
+      align-items: stretch;
+      padding: 0;
+      text-align: center;
+      height: 100vh;
+    }
+    #gridView, #detailView {
+      transform: translateX(100%);
+    }
+    
+    /* New styles for two-division layout */
+    .left-div {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 50px 20px;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .right-div {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 50px 20px;
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Floor Selection Styles */
+    #floorSelection h1 {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-weight: bold;
+      font-size: 3.5em;
+      color: white;
+      margin-bottom: 20px;
+    }
+    
+    #floorSelection h2 {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-weight: bold;
+      font-size: 2.5em;
+      color: white;
+      margin-bottom: 20px;
+    }
+    
+    #floorSelection p {
+      font-weight: bold;
+      font-size: 1.2em;
+      color: #fff;
+      margin-bottom: 30px;
+      max-width: 90%;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 15px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+    
+    .floor-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .floor-buttons button {
+      background: rgba(255, 255, 255, 0.7);
+      border: none;
+      padding: 15px 20px;
+      font-size: 1.2em;
+      color: #000;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    
+    .floor-buttons button:hover {
+      background: rgba(255, 255, 255, 0.9);
+      color: #1a2a6c;
+      transform: scale(1.05);
+    }
+    
+    /* Grid View Styles */
+    #gridView header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+    }
+    #gridView header h2 {
+      font-size: 2em;
+      color: white;
+    }
+    #gridView header button {
+      background: #1a2a6c;
+      border: none;
+      padding: 10px 15px;
+      font-size: 1em;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+      color: white;
+    }
+    #gridView header button:hover {
+      background: #b21f1f;
+      color: #fff;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      padding: 20px;
+    }
+    .room {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.3s, background 0.3s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .room:hover {
+      transform: scale(1.05);
+      background: #f1f1f1;
+    }
+    .room strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 1.1em;
+    }
+    /* Detail View Styles */
+    #detailView {
+      background: rgba(0, 0, 0, 0.85);
+      overflow-y: auto;
+    }
+    #detailView header {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 20px;
+    }
+    #detailView header button {
+      background: #1a2a6c;
+      border: none;
+      padding: 10px 15px;
+      font-size: 1em;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-right: 20px;
+      color: white;
+    }
+    #detailView header button:hover {
+      background: #b21f1f;
+      color: #fff;
+    }
+    #detailView .detail-content {
+      padding: 40px;
+      text-align: center;
+      color: white;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    #detailView .detail-content h2 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      color: #b21f1f;
+    }
+    #detailView .detail-content p {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      line-height: 1.6;
+      text-align: left;
+    }
+    #detailView .detail-content .room-image {
+      width: 100%;
+      max-width: 600px;
+      height: 300px;
+      margin: 20px auto;
+      background-color: #333;
+      background-position: center;
+      background-size: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    }
+    .room-specs {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .room-specs h3 {
+      color: #b21f1f;
+      margin-bottom: 10px;
+    }
+    .spec-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8px;
+    }
+    
+    /* Responsive styles for mobile */
+    @media (max-width: 768px) {
+      #floorSelection {
+        flex-direction: column;
+        overflow-y: auto;
+        height: auto;
+      }
+      
+      .left-div, .right-div {
+        width: 100%;
+        padding: 30px 15px;
+      }
+      
+      #floorSelection h1 {
+        font-size: 2.5em;
+      }
+      
+      #floorSelection h2 {
+        font-size: 2em;
+      }
+      
+      .grid-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      #detailView .detail-content {
+        padding: 20px;
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .grid-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      #detailView .detail-content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floor Selection View with Two Divisions -->
+  <div id="floorSelection" class="view">
+    <!-- Left Division - Floor Selection -->
+    <div class="left-div">
+      <h1>SMV</h1>
+      <h2>Select Floor</h2>
+      <div class="floor-buttons">
+        <button onclick="selectFloor(0)">Ground Floor</button>
+        <button onclick="selectFloor(1)">First Floor</button>
+        <button onclick="selectFloor(2)">Second Floor</button>
+        <button onclick="selectFloor(3)">Third Floor</button>
+      </div>
+    </div>
+    
+    <!-- Right Division - Building Description -->
+    <div class="right-div">
+      <h2>Building Information</h2>
+      <a href="https://www.google.co.in/maps/place/SMV/@12.9692341,79.1550985,17z/data=!3m1!4b1!4m6!3m5!1s0x3bad479f7f57cb41:0xca622aae338c108f!8m2!3d12.9692289!4d79.1576734!16s%2Fg%2F1tf22j97?entry=ttu&g_ep=EgoyMDI1MDQwMS4wIKXMDSoASAFQAw%3D%3D">Direction to reach</a>
+      <p>The Sir M Vishveshvaraiya Building was inaugurated by Hon'ble Dr. Kalaignar M. Karunanidhi, Former Chief Minister of Tamil Nadu under the president-ship of Hon'ble Thiru Durai Murugan, 
+        Minister for PWD in the presence of Hon'ble Thiru. Arcot N. Veeraswamy, Minister for Health and Electricity and Hon'ble Thiru K. Pitchandi, 
+        Minister for Housing and Dr. G. Viswanathan, Chancellor on 20th September 1998.</p>
+      <p>SMV is also called 'The Hexagon' due to its unique architecture. The building is in the shape of a hexagon consisting of spacious classrooms and well-equipped labs, 
+        mostly Chemical and Biotechnology Labs. SMV houses the School of Bio-sciences and Technology (SBST), Catering and Hotel Management.</p>
+      <p>An enormous spacious smart classroom adds a feather to its cap.</p>
+    </div>
+  </div>
+
+  <!-- Grid View -->
+  <div id="gridView" class="view">
+    <header>
+      <button onclick="backToFloors()">&larr; Back to Floors</button>
+      <h2 id="gridFloorTitle">Floor</h2>
+    </header>
+    <div class="grid-container" id="gridContainer">
+      <!-- Rooms will be generated here -->
+    </div>
+  </div>
+
+  <!-- Detail View -->
+  <div id="detailView" class="view">
+    <header>
+      <button onclick="backToGrid()">&larr; Back to Grid</button>
+    </header>
+    <div class="detail-content" id="detailContent">
+      <!-- Detailed room info goes here -->
+    </div>
+  </div>
+
+  <script>
+    // Enhanced data for SMV floors with detailed descriptions
+    const floorData = {
+
+      1: {
+        special: {
+          6: { 
+            type: 'Lab', 
+            name: 'Automotive Engineering Lab',
+            capacity: 35,
+            description: 'The Automotive Engineering Lab features state-of-the-art equipment for testing and analyzing vehicle components. Students can work on engines, transmissions, and suspension systems to gain practical experience in automotive engineering principles.',
+            facilities: ['Engine test benches', 'Chassis dynamometer', 'Automotive diagnostic tools', 'Fuel injection system analyzers', 'Vehicle simulation software'],
+            image: 'labs.jpeg'
+          },
+          13: { 
+            type: 'Auditorium', 
+            name: 'Engineering Innovation Auditorium',
+            capacity: 210,
+            description: 'The Engineering Innovation Auditorium serves as a hub for technical presentations, engineering conferences, and industry seminars. With excellent acoustics and modern presentation equipment, it provides an ideal venue for sharing mechanical engineering research and innovations.',
+            facilities: ['High-definition projection system', 'Advanced sound system', 'Tiered seating with writing surfaces', 'Technical presentation podium', 'Recording capabilities for lectures'],
+            image: 'TT_audi_1.jpeg'
+          }
+        }
+      },
+      2: {
+        special: {
+          5: { 
+            type: 'Lab', 
+            name: 'CAD/CAM Laboratory',
+            capacity: 40,
+            description: 'The CAD/CAM Laboratory is equipped with powerful workstations running industry-standard design and manufacturing software. Students can create detailed 3D models, run simulations, and generate CNC machining programs for prototype production.',
+            facilities: ['High-performance CAD workstations', 'Solidworks, CATIA, and AutoCAD software', '3D printing equipment', 'CNC programming tools', 'Digital design reference library'],
+            image: 'labs.jpeg'
+          },
+          11: { 
+            type: 'Seminar Hall', 
+            name: 'Mechanical Engineering Seminar Hall',
+            capacity: 90,
+            description: 'The Mechanical Engineering Seminar Hall is designed for interactive learning and technical discussions. With flexible seating arrangements and advanced presentation capabilities, it serves as an ideal space for engineering workshops, design reviews, and collaborative problem-solving sessions.',
+            facilities: ['Configurable seating layout', 'Multiple projection screens', 'Engineering model display cases', 'Interactive whiteboards', 'Group discussion pods'],
+            image: 'seminar_hall.jpeg'
+          },
+          18: { 
+            type: 'Lab', 
+            name: 'Materials Testing Laboratory',
+            capacity: 30,
+            description: 'The Materials Testing Laboratory contains specialized equipment for analyzing the mechanical properties of engineering materials. Students can conduct tensile, compression, hardness, and impact tests to understand material behavior under various loading conditions.',
+            facilities: ['Universal testing machine', 'Hardness testers', 'Impact testing equipment', 'Metallurgical microscopes', 'Non-destructive testing apparatus'],
+            image: 'labs.jpeg'
+          }
+        }
+      },
+      3: {
+        special: {
+          2: { 
+            type: 'Lab', 
+            name: 'Thermodynamics and Heat Transfer Lab',
+            capacity: 35,
+            description: 'The Thermodynamics and Heat Transfer Lab enables students to perform experiments related to energy conversion, heat exchange, and fluid flow. Using specialized equipment, students can observe fundamental principles of thermal engineering in action.',
+            facilities: ['Heat exchanger test rigs', 'Steam power plant model', 'Refrigeration cycle equipment', 'Thermal conductivity apparatus', 'Data acquisition systems'],
+            image: 'labs.jpeg'
+          },
+          8: { 
+            type: 'Auditorium', 
+            name: 'Vehicle Engineering Auditorium',
+            capacity: 190,
+            description: 'The Vehicle Engineering Auditorium focuses on automotive technology presentations and industry interactions. With specialized display capabilities for technical demonstrations and vehicle component exhibits, it serves as a bridge between academic theory and industrial applications.',
+            facilities: ['Surround projection system', 'Vehicle component display area', 'Industrial partner showcase space', 'Technical presentation equipment', 'Automotive technology demonstrations'],
+            image: 'TT_audi_1.jpg'
+          },
+          16: { 
+            type: 'Lab', 
+            name: 'Robotics and Automation Lab',
+            capacity: 32,
+            description: 'The Robotics and Automation Lab features industrial robots, programmable logic controllers, and automated systems for advanced manufacturing studies. Students learn to program robots, design automated processes, and implement smart manufacturing solutions.',
+            facilities: ['Industrial robot arms', 'PLC programming stations', 'Conveyor systems', 'Machine vision systems', 'Industrial IoT demonstration units'],
+            image: 'labs.jpeg'
+          }
+        }
+      }
+    };
+
+    // Lab and classroom data templates
+    const labTemplate = {
+      capacity: 40,
+      description: 'A fully-equipped laboratory space designed for mechanical engineering experimentation and practical learning. The lab features modern testing equipment, measurement tools, and workstations for analyzing engineering principles and phenomena.',
+      facilities: ['Engineering workstations', 'Measurement instruments', 'Testing equipment', 'Technical resources', 'Safety equipment'],
+      image: 'labs.jpeg'
+    };
+
+    const classroomTemplate = {
+      capacity: 60,
+      description: 'An engineering-focused classroom designed for technical instruction and collaborative learning. The room includes visualization tools for complex engineering concepts and comfortable seating arranged to facilitate both lecture-style teaching and group discussions.',
+      facilities: ['Technical display system', 'Engineering model displays', 'Whiteboard space', 'Faculty demonstration station', 'Wi-Fi connectivity'],
+      image: 'TT_classroom.jpeg'
+    };
+
+    let currentFloor = null;
+    let currentRoom = null;
+
+    // Transition to grid view for selected floor
+    function selectFloor(floorNumber) {
+      currentFloor = floorNumber;
+      document.getElementById('gridFloorTitle').textContent = `Floor ${floorNumber}`;
+      generateGrid(floorNumber);
+      // Slide floorSelection out to left, gridView in from right
+      document.getElementById('floorSelection').style.transform = 'translateX(-100%)';
+      document.getElementById('gridView').style.transform = 'translateX(0)';
+    }
+
+    // Generate grid for the floor (20 rooms)
+    function generateGrid(floorNumber) {
+      const container = document.getElementById('gridContainer');
+      container.innerHTML = '';
+      
+      // Define lab positions for each floor (different from GDN)
+      const labPositions = {
+        1: [3, 6, 17],
+        2: [5, 9, 18],
+        3: [2, 12, 16]
+      };
+      
+      for (let i = 1; i <= 20; i++) {
+        const roomDiv = document.createElement('div');
+        roomDiv.classList.add('room');
+        
+        // Check if this position is a lab
+        let roomType = (labPositions[floorNumber] && labPositions[floorNumber].includes(i)) ? 'Lab' : 'Classroom';
+        let roomName = (roomType === 'Lab') ? `Engineering Lab ${i}` : `Classroom ${i}`;
+        let roomData = (roomType === 'Lab') ? {...labTemplate} : {...classroomTemplate};
+        
+        // Special room override if exists
+        const special = floorData[floorNumber]?.special || {};
+        if (special[i]) {
+          roomType = special[i].type;
+          roomName = special[i].name;
+          roomData = special[i];
+        }
+        
+        roomDiv.innerHTML = `<strong>${roomType}</strong><span>Room ${i}</span>`;
+        roomDiv.onclick = function() { showDetail(i, roomType, roomName, roomData); };
+        container.appendChild(roomDiv);
+      }
+    }
+
+    // Transition to detail view for a room
+    function showDetail(roomNumber, roomType, roomName, roomData) {
+      currentRoom = roomNumber;
+      const detail = document.getElementById('detailContent');
+      
+      // Create detailed content with image and specifications
+      let facilitiesHTML = '';
+      if (roomData.facilities && roomData.facilities.length > 0) {
+        facilitiesHTML = roomData.facilities.map(item => `<li>${item}</li>`).join('');
+      }
+      
+      detail.innerHTML = ` 
+        <h2>${roomName}</h2>
+        <p><strong>Room Number:</strong> ${roomNumber}</p>
+        <p><strong>Type:</strong> ${roomType}</p>
+        <div class="room-image" style="background-image: url('${roomData.image || 'placeholder.jpg'}')"></div>
+        <p>${roomData.description}</p>
+        
+        <div class="room-specs">
+          <h3>Room Specifications</h3>
+          <div class="spec-item">
+            <span>Capacity</span>
+            <span>${roomData.capacity} persons</span>
+          </div>
+          <div class="spec-item">
+            <span>Floor</span>
+            <span>${currentFloor}</span>
+          </div>
+          <div class="spec-item">
+            <span>Access</span>
+            <span>Card-controlled</span>
+          </div>
+          <div class="spec-item">
+            <span>Status</span>
+            <span>Operational</span>
+          </div>
+        </div>
+        
+        <h3>Facilities & Equipment</h3>
+        <ul>
+          ${facilitiesHTML}
+        </ul>
+      `;
+      
+      // Slide gridView to left, detailView in from right
+      document.getElementById('gridView').style.transform = 'translateX(-100%)';
+      document.getElementById('detailView').style.transform = 'translateX(0)';
+    }
+
+    // Back from grid view to floor selection
+    function backToFloors() {
+      document.getElementById('floorSelection').style.transform = 'translateX(0)';
+      document.getElementById('gridView').style.transform = 'translateX(100%)';
+    }
+
+    // Back from detail view to grid view
+    function backToGrid() {
+      document.getElementById('detailView').style.transform = 'translateX(100%)';
+      document.getElementById('gridView').style.transform = 'translateX(0)';
+    }
+  </script>
+</body>
+</html>

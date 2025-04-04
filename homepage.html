@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institution Infrastructure Catalogue</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('VIT.jpeg') no-repeat center center/cover;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background 0.5s ease-in-out;
+        }
+        header {
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: white;
+            text-transform: uppercase;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            z-index: 100;
+        }
+        main {
+            margin-top: 80px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        main h2 {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        main p {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: white;
+            width: 1000px;
+            margin-bottom: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .block-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        button {
+            background: linear-gradient(135deg, #007bff, #00bfff);
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.5);
+            text-transform: uppercase;
+            z-index: 10;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #00bfff, #007bff);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 123, 255, 0.7);
+        }
+        button:active {
+            background: linear-gradient(135deg, #0056b3, #00bfff);
+            transform: scale(0.98);
+        }
+        .building-info {
+            text-align: center;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+            max-width: 1000px; 
+            width: 90%;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .building-info.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #buildingName {
+            margin-top: 0;
+            color: #00bfff;
+        }
+        @media (max-width: 768px) {
+            .block-selection {
+                flex-direction: column;
+                align-items: center;
+            }
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body id="body">
+    <header>
+        INSTITUTION INFRASTRUCTURE CATALOGUE
+    </header>
+    <main id="home">
+        <h2>SELECT AN ACADEMIC BLOCK</h2>
+        <p>VIT was established under Section 3 of the University Grants Commission (UGC) Act, 1956, and was founded in 1984 as a self-financing institution called the Vellore Engineering College.
+            The Union Ministry of Human Resources Development conferred University status on Vellore Engineering College in 2001. 
+            The University is headed by its founder and Chancellor, Dr. G. Viswanathan, a former Parliamentarian and Minister in the Tamil Nadu Government. 
+            In recognition of his service to India in offering world class education, he was conferred an honorary doctorate by the West Virginia University, USA. 
+            Mr.Sankar Viswanathan, Dr.Sekar Viswanathan and Dr.G.V. Selvam are the Vice-Presidents; Dr. V. S. Kanchana Bhaaskaran is the Vice-Chancellor and 
+            Dr. Partha Sharathi Mallick is the Pro-Vice Chancellor.
+        </p>
+        <div class="block-selection">
+            <button onmouseover="changeBuildingInfo('TT')" onmouseout="resetInfo()" onclick="navigateToBlock('TT')">TT BUILDING</button>
+            <button onmouseover="changeBuildingInfo('CDMM')" onmouseout="resetInfo()" onclick="navigateToBlock('CDMM')">CDMM BUILDING</button>
+            <button onmouseover="changeBuildingInfo('GDN')" onmouseout="resetInfo()" onclick="navigateToBlock('GDN')">GDN BUILDING</button>
+            <button onmouseover="changeBuildingInfo('SMV')" onmouseout="resetInfo()" onclick="navigateToBlock('SMV')">SMV BUILDING</button>
+        </div>
+
+        <div id="buildingInfo" class="building-info">
+            <h2 id="buildingName"></h2>
+            <p id="buildingDescription"></p>
+        </div>
+    </main>
+
+    <script>
+        const buildingData = {
+            'TT': {
+                name: 'TT Building',
+                description: 'THE TT BUILDING AT VIT VELLORE IS A DYNAMIC SPACE DESIGNED FOR TECH ENTHUSIASTS, WITH MODERN CLASSROOMS AND LABS THAT FOSTER INNOVATION AND COLLABORATION.',
+                image: 'url(TT.jpeg)'
+            },
+            'CDMM': {
+                name: 'CDMM Building',
+                description: 'CENTRE OF DISASTER MITIGATION AND MANAGEMENT (CDMM) was inaugurated in January 2006 by the Honorable Home Minister of India Shri. ShivrajPatil',
+                image: 'url(CDMM.jpg)'
+            },
+            'GDN': {
+                name: 'GDN Building',
+                description: 'G.D. NAIDU BLOCK, The foundation stone of the building was laid by Honble Dr. Navalar R. Nedunchezian, Ex-Minister of Finance & Revenue , Govt. of Tamil Nadu on 5th July 1985',
+                image: 'url(GDN.jpeg)'
+            },
+            'SMV': {
+                name: 'SMV Building',
+                description: 'SRI M VISHWESHWARAIAH BUILDING was inaugurated by Hon’ble Dr. Kalaignar M. Karunanidhi , Former Chief Minister of Tamil Nadu on 20th September 1998.',
+                image: 'url(SMV.jpeg)'
+            }
+        };
+
+        function navigateToBlock(blockName) {
+            // Redirect or dynamically load block page
+            const links = {
+                'TT': 'TT.html',
+                'CDMM': 'CDMM.html',
+                'GDN': 'GDN.html',
+                'SMV': 'SMV.html'
+            };
+            window.location.href = links[blockName]; 
+        }
+
+        function changeBuildingInfo(block) {
+            // Show building info without hiding header and select block text
+            document.getElementById('buildingName').innerText = buildingData[block].name;
+            document.getElementById('buildingDescription').innerText = buildingData[block].description;
+            document.getElementById('buildingInfo').classList.add('visible');
+
+            // Change background with a subtle transition
+            document.getElementById('body').style.background = buildingData[block].image;
+            document.getElementById('body').style.backgroundSize = 'cover';
+            document.getElementById('body').style.backgroundPosition = 'center';
+        }
+
+        function resetInfo() {
+            // Hide the building info without affecting other elements
+            document.getElementById('buildingInfo').classList.remove('visible');
+            
+            // Reset to default background
+            document.getElementById('body').style.background = 'url(VIT.jpeg) no-repeat center center/cover';
+        }
+    </script>
+</body>
+</html>

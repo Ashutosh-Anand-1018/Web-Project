@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TECHNOLOGY TOWER - Interactive Catalogue</title>
+  <style>
+    /* Reset & Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('TT1.jpeg') no-repeat center center fixed, linear-gradient(135deg, #4e92d4, #a4c9e0);
+      background-size: cover;
+      overflow: hidden;
+      color: #000;
+      position: relative;
+      height: 100vh;
+    }
+    /* Container for views */
+    .view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.5s ease;
+    }
+    /* Initially, floor selection view is visible; others are offscreen right */
+    #floorSelection {
+      transform: translateX(0);
+      display: flex;
+      flex-direction: row; /* Changed to row for two-division layout */
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      height: 100vh;
+      padding: 20px;
+    }
+    
+    /* Left and right division styling - made smaller */
+    .floor-selection-left {
+      width: 300px;
+      height: 500px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.6);
+      border-radius: 15px 0 0 15px;
+      margin-right: 2px;
+      overflow-y: auto;
+    }
+    
+    .floor-selection-right {
+      width: 500px;
+      height: 500px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding: 20px;
+      text-align: left;
+      background-color: rgba(255, 255, 255, 0.7);
+      border-radius: 0 15px 15px 0;
+      overflow-y: auto;
+    }
+    
+    #gridView, #detailView {
+      transform: translateX(100%);
+    }
+    /* Floor Selection Styles */
+    #floorSelection h1 {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-weight: bold;
+      font-size: 2em;
+      color: rgb(231, 117, 117);
+      margin-bottom: 15px;
+    }
+    
+    .floor-selection-right h1 {
+      color: #000;
+      margin-bottom: 15px;
+      font-size: 1.8em;
+    }
+    
+    #floorSelection p {
+      font-weight: bold;
+      font-size: 1em;
+      color: rgb(231, 117, 117);
+      margin-bottom: 15px;
+    }
+    
+    .floor-selection-right p {
+      color: #000;
+      text-decoration-color:black;
+      text-align: justify;
+      font-size: 0.9em;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    
+    .floor-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 15px;
+      width: 90%;
+    }
+    .floor-buttons button {
+      background: rgba(255, 255, 255, 0.7);
+      border: none;
+      padding: 8px 15px;
+      font-size: 1em;
+      color: #000;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      width: 100%;
+    }
+    .floor-buttons button:hover {
+      background: rgba(255, 255, 255, 0.9);
+      color: #007BFF;
+      transform: scale(1.05);
+    }
+    /* Grid View Styles */
+    #gridView header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+    }
+    #gridView header h2 {
+      font-size: 2em;
+      color: white;
+    }
+    #gridView header button {
+      background: #007BFF;
+      border: none;
+      padding: 10px 15px;
+      font-size: 1em;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+      color: white;
+    }
+    #gridView header button:hover {
+      background: #00B0FF;
+      color: #000;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      padding: 20px;
+    }
+    .room {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.3s, background 0.3s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .room:hover {
+      transform: scale(1.05);
+      background: #f1f1f1;
+    }
+    .room strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 1.1em;
+    }
+    /* Detail View Styles */
+    #detailView {
+      background: rgba(0, 0, 0, 0.85);
+      overflow-y: auto;
+    }
+    #detailView header {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 20px;
+    }
+    #detailView header button {
+      background: #007BFF;
+      border: none;
+      padding: 10px 15px;
+      font-size: 1em;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-right: 20px;
+      color: white;
+    }
+    #detailView header button:hover {
+      background: #00B0FF;
+      color: #000;
+    }
+    #detailView .detail-content {
+      padding: 40px;
+      text-align: center;
+      color: white;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    #detailView .detail-content h2 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      color: #00B0FF;
+    }
+    #detailView .detail-content p {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      line-height: 1.6;
+      text-align: left;
+    }
+    #detailView .detail-content .room-image {
+      width: 100%;
+      max-width: 600px;
+      height: 300px;
+      margin: 20px auto;
+      background-color: #333;
+      background-position: center;
+      background-size: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    }
+    .room-specs {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .room-specs h3 {
+      color: #00B0FF;
+      margin-bottom: 10px;
+    }
+    .spec-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8px;
+    }
+    @media (max-width: 768px) {
+      #floorSelection {
+        flex-direction: column;
+      }
+      .floor-selection-left, .floor-selection-right {
+        width: 90%;
+        height: auto;
+        border-radius: 15px;
+        margin: 10px 0;
+      }
+      .grid-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      #detailView .detail-content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floor Selection View with smaller two divisions -->
+  <div id="floorSelection" class="view">
+    <div class="floor-selection-left">
+      <h1>TECHNOLOGY TOWER</h1>
+      <p>Select a floor to explore</p>
+      <div class="floor-buttons">
+        <button onclick="selectFloor(0)">Ground Floor</button>
+        <button onclick="selectFloor(1)">Floor 1</button>
+        <button onclick="selectFloor(2)">Floor 2</button>
+        <button onclick="selectFloor(3)">Floor 3</button>
+        <button onclick="selectFloor(4)">Floor 4</button>
+        <button onclick="selectFloor(5)">Floor 5</button>
+        <button onclick="selectFloor(6)">Floor 6</button>
+        <button onclick="selectFloor(7)">Floor 7</button>
+      </div>
+    </div>
+    
+    <div class="floor-selection-right">
+      <h1>Building Overview</h1>
+      <a href="https://www.google.co.in/maps/place/Technology+Tower+-+TT/@12.970886,79.1563913,17.77z/data=!4m6!3m5!1s0x3bad47a1c31ff897:0x25b8753e051621bd!8m2!3d12.9707838!4d79.1595271!16s%2Fg%2F1tjrndtn?entry=ttu&g_ep=EgoyMDI1MDQwMS4wIKXMDSoASAFQAw%3D%3D">Direction To reach</a>
+      <p>The grand Technology Tower, popularly known as TT, is an architectural marvel. It was inaugurated by Honourable Justice Mr. Doraiswamy Raju of the Supreme Court of India, 
+        in the presence of Dr. K Venkatasubramanian, a member of the Planning Commission of India, Dr. G Viswanathan, Chancellor and Sri G.V Selvam, Vice President.</p>
+      <p>The building consists of 7 floors, boasts of two conference halls - conference Hall @ TBI with a capacity of 20 and 454 sq. ft. in area and 
+        Conference Hall @ TIFAC with a capacity of 14 and 300 sq. ft. in area.</p>
+      <p>It also has several auditoriums such as Dr. B.R Ambedkar auditorium 
+        with a capacity of 198 and 2447 sq. ft. in area and Kamaraj auditorium with a capacity of 128 and 2447 sq. ft. in area.</p>
+      <p>It also currently houses 4 schools - 
+        SELECT, SENSE, SAS, & SSL along with TBI, CNR (NANO TECHNOLOGY), CBST, TIFFAC-CORE and Academic Staff College.</p>
+      <p>It is well known for having a cooler 
+        temperature even during summer, thanks to its remarkable construction and architecture. 
+        Standing tall in the middle of the campus, it neighbours the Food Court and Girls Hostel in the campus.</p>
+    </div>
+  </div>
+
+  <!-- Grid View -->
+  <div id="gridView" class="view">
+    <header>
+      <button onclick="backToFloors()">&larr; Back to Floors</button>
+      <h2 id="gridFloorTitle">Floor</h2>
+    </header>
+    <div class="grid-container" id="gridContainer">
+    </div>
+  </div>
+  <div id="detailView" class="view">
+    <header>
+      <button onclick="backToGrid()">&larr; Back to Grid</button>
+    </header>
+    <div class="detail-content" id="detailContent">
+    </div>
+  </div>
+
+  <script>
+    const floorData = {
+      0: {
+        special: {
+          18: { 
+            type: 'Auditorium', 
+            name: 'Ambedkar Auditorium',
+            capacity: 198,
+            description: 'The Ambedkar Auditorium is a state-of-the-art venue designed for major academic events, technical symposiums, and guest lectures. The acoustically optimized space features tiered seating, advanced audio-visual systems, and integrated recording capabilities.',
+            facilities: ['Digital projector systems', 'Surround sound audio', 'Adjustable lighting', 'Backstage preparation area', 'Technical control booth'],
+            image: 'TT_audi_1.jpeg'
+          },
+          12: { 
+            type: 'Incubation Cell', 
+            name: 'Incubation Cell-1',
+            capacity: 120,
+            description: 'The Innovation Seminar Hall serves as a dynamic space for interactive sessions, workshops, and collaborative discussions. Designed with flexibility in mind, this hall can be configured for various formats from panel discussions to hands-on training sessions.',
+            facilities: ['Modular seating arrangement', 'Interactive smart board', 'Video conferencing setup', 'Acoustic paneling', 'Integrated presentation system'],
+            image: 'seminar_hall.jpeg'
+          },
+          13: { 
+            type: 'Incubation Cell', 
+            name: 'Incubation Cell-2',
+            capacity: 120,
+            description: 'The Innovation Seminar Hall serves as a dynamic space for interactive sessions, workshops, and collaborative discussions. Designed with flexibility in mind, this hall can be configured for various formats from panel discussions to hands-on training sessions.',
+            facilities: ['Modular seating arrangement', 'Interactive smart board', 'Video conferencing setup', 'Acoustic paneling', 'Integrated presentation system'],
+            image: 'seminar_hall.jpeg'
+          }
+        }
+      },
+      2: {
+        special: {
+          4: { 
+            type: 'Auditorium', 
+            name: 'Digital Forum Auditorium',
+            capacity: 200,
+            description: 'The Digital Forum Auditorium is a modern venue designed specifically for department-level events, technical presentations, and academic functions. With excellent visibility from all seats and integrated digital systems, it provides an ideal environment for knowledge sharing.',
+            facilities: ['Dual projection system', 'Professional audio setup', 'Ergonomic seating', 'Speaker podium with controls', 'Digital recording equipment'],
+            image: 'TT_audi_1.jpg'
+          },
+          10: { 
+            type: 'TBI Cell', 
+            name: 'Entrepreneurship Hub',
+            capacity: 40,
+            description: 'The Entrepreneurship Hub is a dedicated space where innovation meets business development. This TBI Cell provides students with resources, mentorship, and networking opportunities to develop their startup ideas and gain practical business experience.',
+            facilities: ['Brainstorming zones', 'Digital resource center', 'Prototype testing area', 'Presentation practice space', 'Collaborative workbenches'],
+            image: 'CDC.webp'
+          }
+        }
+      },
+      3: {
+        special: {
+          7: { 
+            type: 'Seminar Hall', 
+            name: 'Tech Discovery Seminar Hall',
+            capacity: 100,
+            description: 'The Tech Discovery Seminar Hall is specially designed for workshops, training sessions, and interactive learning experiences. The versatile space features movable furniture and integrated technology to support various teaching methodologies and collaborative activities.',
+            facilities: ['Configurable seating arrangement', 'Touch-screen presentation system', 'Group work spaces', 'Collaborative software tools', 'Multiple display screens'],
+            image: 'seminar_hall.jpeg'
+          }
+        }
+      },
+      7: {
+        special: {
+          12: {
+            type: 'Auditorium',
+            name: 'Kamraj Auditorium',
+            capacity: 128,
+            description: 'The Kamraj Auditorium is a state-of-the-art venue designed for major academic events, technical symposiums, and guest lectures. The acoustically optimized space features tiered seating, advanced audio-visual systems, and integrated recording capabilities.',
+            facilities: ['Digital projector systems', 'Surround sound audio', 'Adjustable lighting', 'Backstage preparation area', 'Technical control booth'],
+            image: 'TT_audi_1.jpeg'
+          }
+        }
+      }
+    };
+
+    // Lab and classroom data templates
+    const labTemplate = {
+      capacity: 40,
+      description: 'A fully-equipped laboratory space designed for hands-on experimentation and practical learning. The lab features modern equipment, safety systems, and adequate workspace for individual and group activities.',
+      facilities: ['Workstations with power outlets', 'Safety equipment', 'Storage cabinets', 'Demonstration area', 'Technical support desk'],
+      image: 'labs.jpeg'
+    };
+
+    const classroomTemplate = {
+      capacity: 60,
+      description: 'A spacious classroom optimized for effective learning and teaching. The room is designed with student comfort in mind, featuring good acoustics, natural lighting where possible, and a layout that encourages interaction between faculty and students.',
+      facilities: ['Projector and screen', 'Whiteboard', 'Ergonomic seating', 'Faculty console', 'Wi-Fi connectivity'],
+      image: 'TT_classroom.jpeg'
+    };
+
+    let currentFloor = null;
+    let currentRoom = null;
+
+    // Transition to grid view for selected floor
+    function selectFloor(floorNumber) {
+      currentFloor = floorNumber;
+      document.getElementById('gridFloorTitle').textContent = `Floor ${floorNumber}`;
+      generateGrid(floorNumber);
+      // Slide floorSelection out to left, gridView in from right
+      document.getElementById('floorSelection').style.transform = 'translateX(-100%)';
+      document.getElementById('gridView').style.transform = 'translateX(0)';
+    }
+
+    // Generate grid for the floor (20 rooms)
+    function generateGrid(floorNumber) {
+      const container = document.getElementById('gridContainer');
+      container.innerHTML = '';
+      for (let i = 1; i <= 20; i++) {
+        const roomDiv = document.createElement('div');
+        roomDiv.classList.add('room');
+        
+        // Default: first 3 are labs; rest are classrooms
+        let roomType = (i <= 3) ? 'Lab' : 'Classroom';
+        let roomName = (i <= 3) ? `Technical Lab ${i}` : `Classroom ${i}`;
+        let roomData = (i <= 3) ? {...labTemplate} : {...classroomTemplate};
+        
+        // Special room override if exists
+        const special = floorData[floorNumber]?.special || {};
+        if (special[i]) {
+          roomType = special[i].type;
+          roomName = special[i].name;
+          roomData = special[i];
+        }
+        
+        roomDiv.innerHTML = `<strong>${roomType}</strong><span>Room ${i}</span>`;
+        roomDiv.onclick = function() { showDetail(i, roomType, roomName, roomData); };
+        container.appendChild(roomDiv);
+      }
+    }
+
+    // Transition to detail view for a room
+    function showDetail(roomNumber, roomType, roomName, roomData) {
+      currentRoom = roomNumber;
+      const detail = document.getElementById('detailContent');
+      
+      // Create detailed content with image and specifications
+      let facilitiesHTML = '';
+      if (roomData.facilities && roomData.facilities.length > 0) {
+        facilitiesHTML = roomData.facilities.map(item => `<li>${item}</li>`).join('');
+      }
+      
+      detail.innerHTML = ` 
+        <h2>${roomName}</h2>
+        <p><strong>Room Number:</strong> ${roomNumber}</p>
+        <p><strong>Type:</strong> ${roomType}</p>
+        <div class="room-image" style="background-image: url('${roomData.image || 'placeholder.jpg'}')"></div>
+        <p>${roomData.description}</p>
+        
+        <div class="room-specs">
+          <h3>Room Specifications</h3>
+          <div class="spec-item">
+            <span>Capacity</span>
+            <span>${roomData.capacity} persons</span>
+          </div>
+          <div class="spec-item">
+            <span>Floor</span>
+            <span>${currentFloor}</span>
+          </div>
+          <div class="spec-item">
+            <span>Access</span>
+            <span>Card-controlled</span>
+          </div>
+          <div class="spec-item">
+            <span>Status</span>
+            <span>Operational</span>
+          </div>
+        </div>
+        
+        <h3>Facilities & Equipment</h3>
+        <ul>
+          ${facilitiesHTML}
+        </ul>
+      `;
+      
+      // Slide gridView to left, detailView in from right
+      document.getElementById('gridView').style.transform = 'translateX(-100%)';
+      document.getElementById('detailView').style.transform = 'translateX(0)';
+    }
+
+    // Back from grid view to floor selection
+    function backToFloors() {
+      document.getElementById('floorSelection').style.transform = 'translateX(0)';
+      document.getElementById('gridView').style.transform = 'translateX(100%)';
+    }
+
+    // Back from detail view to grid view
+    function backToGrid() {
+      document.getElementById('detailView').style.transform = 'translateX(100%)';
+      document.getElementById('gridView').style.transform = 'translateX(0)';
+    }
+  </script>
+</body>
+</html>

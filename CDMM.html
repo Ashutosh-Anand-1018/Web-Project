@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CDMM - Interactive Catalogue</title>
+  <style>
+    /* Reset & Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('CDMM.jpg') no-repeat center center fixed, linear-gradient(135deg, #6a3093, #a044ff);
+      background-size: cover;
+      overflow: hidden;
+      color: #000;
+      position: relative;
+      height: 100vh;
+    }
+    /* Container for views */
+    .view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.5s ease;
+    }
+    /* Initially, floor selection view is visible; others are offscreen right */
+    #floorSelection {
+      transform: translateX(0);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding-top: 50px;
+      text-align: center;
+    }
+    #gridView, #detailView {
+      transform: translateX(100%);
+    }
+    /* Floor Selection Styles */
+    #floorSelection h1 {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-weight: bold;
+      font-size: 3.5em;
+      color: white;
+      margin-bottom: 20px;
+    }
+    #floorSelection p {
+      font-weight: bold;
+      font-size: 1.2em;
+      color: #fff;
+      margin-bottom: 30px;
+      max-width: 80%;
+    }
+    .floor-buttons {
+      display: flex;
+      gap: 15px;
+    }
+    .floor-buttons button {
+      background: rgba(255, 255, 255, 0.7);
+      border: none;
+      padding: 15px 20px;
+      font-size: 1.2em;
+      color: #000;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    .floor-buttons button:hover {
+      background: rgba(255, 255, 255, 0.9);
+      color: #8e44ad;
+      transform: scale(1.05);
+    }
+    /* Grid View Styles */
+    #gridView header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+    }
+    #gridView header h2 {
+      font-size: 2em;
+      color: white;
+    }
+    #gridView header button {
+      background: #8e44ad;
+      border: none;
+      padding: 10px 15px;
+      font-size: 1em;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+      color: white;
+    }
+    #gridView header button:hover {
+      background: #a055c5;
+      color: #000;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      padding: 20px;
+    }
+    .room {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.3s, background 0.3s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .room:hover {
+      transform: scale(1.05);
+      background: #f1f1f1;
+    }
+    .room strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 1.1em;
+    }
+    /* Detail View Styles */
+    #detailView {
+      background: rgba(0, 0, 0, 0.85);
+      overflow-y: auto;
+    }
+    #detailView header {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 20px;
+    }
+    #detailView header button {
+      background: #8e44ad;
+      border: none;
+      padding: 10px 15px;
+      font-size: 1em;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-right: 20px;
+      color: white;
+    }
+    #detailView header button:hover {
+      background: #a055c5;
+      color: #000;
+    }
+    #detailView .detail-content {
+      padding: 40px;
+      text-align: center;
+      color: white;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    #detailView .detail-content h2 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      color: #a055c5;
+    }
+    #detailView .detail-content p {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      line-height: 1.6;
+      text-align: left;
+    }
+    #detailView .detail-content .room-image {
+      width: 100%;
+      max-width: 600px;
+      height: 300px;
+      margin: 20px auto;
+      background-color: #333;
+      background-position: center;
+      background-size: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    }
+    .room-specs {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .room-specs h3 {
+      color: #a055c5;
+      margin-bottom: 10px;
+    }
+    .spec-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8px;
+    }
+    @media (max-width: 600px) {
+      .grid-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      #detailView .detail-content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floor Selection View -->
+  <div id="floorSelection" class="view">
+    <h1>CDMM</h1>
+    <p>The Centre was inaugurated in January 2006 by the Honorable Home Minister of India Shri. ShivrajPatil in the gracious presence of General NC Vij., Vice Chairman, National Disaster Management Authority, Government of India and patronized by VIT University with state-of-art infrastructure. It was the first centre to be set up in India for disaster mitigation and management after the National Disaster Management Act was passed in Parliament in December 2005. The focus areas are Research, Development & Consultancy Services in Disaster Reduction Programs, Innovative Disaster Education Initiatives and Knowledge Networking & Partnerships. The building consists of 5 floors in total includes regular class rooms, faculty cabins, smart class rooms, research labs in addition to CDMM.</p>
+    <div class="floor-buttons">
+      <button onclick="selectFloor(0)">Ground Floor</button>
+      <button onclick="selectFloor(1)">First Floor</button>
+      <button onclick="selectFloor(2)">Second Floor</button>
+      <button onclick="selectFloor(3)">Third Floor</button>
+    </div>
+  </div>
+
+  <!-- Grid View -->
+  <div id="gridView" class="view">
+    <header>
+      <button onclick="backToFloors()">&larr; Back to Floors</button>
+      <h2 id="gridFloorTitle">Floor</h2>
+    </header>
+    <div class="grid-container" id="gridContainer">
+      <!-- Rooms will be generated here -->
+    </div>
+  </div>
+
+  <!-- Detail View -->
+  <div id="detailView" class="view">
+    <header>
+      <button onclick="backToGrid()">&larr; Back to Grid</button>
+    </header>
+    <div class="detail-content" id="detailContent">
+      <!-- Detailed room info goes here -->
+    </div>
+  </div>
+
+  <script>
+    // Enhanced data for CDMM floors with detailed descriptions
+    const floorData = {
+      1: {
+        special: {
+          7: { 
+            type: 'Auditorium', 
+            name: 'Digital Media Auditorium',
+            capacity: 250,
+            description: 'The Digital Media Auditorium is a state-of-the-art venue designed for multimedia presentations, film screenings, and digital art showcases. The theater-style space features enhanced audiovisual capabilities and exceptional acoustics for an immersive experience.',
+            facilities: ['4K projection system', 'Multi-channel surround sound', 'Dynamic lighting system', 'Multimedia control center', 'Tiered seating with excellent sightlines'],
+            image: 'TT_audi_1.jpeg'
+          },
+          15: { 
+            type: 'Lab', 
+            name: 'Advanced Media Production Lab',
+            capacity: 35,
+            description: 'The Advanced Media Production Lab is equipped with professional-grade equipment for video, audio, and digital media creation. Students can access high-end cameras, editing workstations, and recording facilities to produce industry-standard creative content.',
+            facilities: ['Professional editing suites', 'Audio recording booths', 'Green screen studio', 'Motion capture system', 'VR/AR development stations'],
+            image: 'labs.jpeg'
+          }
+        }
+      },
+      2: {
+        special: {
+          3: { 
+            type: 'Lab', 
+            name: 'Material Science Research Lab',
+            capacity: 30,
+            description: 'The Material Science Research Lab features specialized equipment for analyzing, testing, and developing innovative materials. This lab enables students to explore the properties of various substances and develop new composites for technological applications.',
+            facilities: ['Spectrometers and analyzers', 'Material testing equipment', 'Microscopy station', 'Thermal analysis tools', 'Sample preparation area'],
+            image: 'labs.jpeg'
+          },
+          9: { 
+            type: 'Lab', 
+            name: 'Interactive Design Studio',
+            capacity: 45,
+            description: 'The Interactive Design Studio is a collaborative workspace where students can design and prototype digital interfaces and interactive systems. The studio is equipped with the latest software and hardware tools for UX/UI design, web development, and app creation.',
+            facilities: ['Collaborative design tables', 'Prototyping equipment', 'User testing area', 'Digital drawing tablets', 'Multiple display environments'],
+            image: 'labs.jpeg'
+          }
+        }
+      },
+      3: {
+        special: {
+          6: { 
+            type: 'Seminar Hall', 
+            name: 'Creative Innovation Hall',
+            capacity: 90,
+            description: 'The Creative Innovation Hall is designed for interactive workshops, design thinking sessions, and collaborative problem-solving. This flexible space can be reconfigured to support various learning formats and creative activities.',
+            facilities: ['Modular furniture systems', 'Interactive whiteboards', 'Digital brainstorming tools', 'Presentation systems', 'Breakout session areas'],
+            image: 'seminar_hall.jpeg'
+          },
+          18: { 
+            type: 'Auditorium', 
+            name: 'Materials Innovation Forum',
+            capacity: 180,
+            description: 'The Materials Innovation Forum serves as a venue for academic conferences, guest lectures, and industry presentations related to materials science and technology. The space is optimized for knowledge sharing and professional networking events.',
+            facilities: ['Dual projection capability', 'Professional audio system', 'Recording and streaming infrastructure', 'Comfortable seating', 'Presenter podium with integrated controls'],
+            image: 'TT_audi_1.jpg'
+          }
+        }
+      }
+    };
+
+    // Lab and classroom data templates
+    const labTemplate = {
+      capacity: 40,
+      description: 'A fully-equipped laboratory space designed for hands-on experimentation and practical learning. The lab features modern equipment, safety systems, and adequate workspace for individual and group activities.',
+      facilities: ['Workstations with power outlets', 'Safety equipment', 'Storage cabinets', 'Demonstration area', 'Technical support desk'],
+      image: 'labs.jpeg'
+    };
+
+    const classroomTemplate = {
+      capacity: 60,
+      description: 'A spacious classroom optimized for effective learning and teaching. The room is designed with student comfort in mind, featuring good acoustics, natural lighting where possible, and a layout that encourages interaction between faculty and students.',
+      facilities: ['Projector and screen', 'Whiteboard', 'Ergonomic seating', 'Faculty console', 'Wi-Fi connectivity'],
+      image: 'TT_classroom.jpeg'
+    };
+
+    let currentFloor = null;
+    let currentRoom = null;
+
+    // Transition to grid view for selected floor
+    function selectFloor(floorNumber) {
+      currentFloor = floorNumber;
+      document.getElementById('gridFloorTitle').textContent = `Floor ${floorNumber}`;
+      generateGrid(floorNumber);
+      // Slide floorSelection out to left, gridView in from right
+      document.getElementById('floorSelection').style.transform = 'translateX(-100%)';
+      document.getElementById('gridView').style.transform = 'translateX(0)';
+    }
+
+    // Generate grid for the floor (20 rooms)
+    function generateGrid(floorNumber) {
+      const container = document.getElementById('gridContainer');
+      container.innerHTML = '';
+      
+      // Define lab positions for each floor - different from original
+      const labPositions = {
+        1: [2, 8, 15],
+        2: [3, 9, 14],
+        3: [5, 11, 16]
+      };
+      
+      for (let i = 1; i <= 20; i++) {
+        const roomDiv = document.createElement('div');
+        roomDiv.classList.add('room');
+        
+        // Check if this position is a lab
+        let roomType = (labPositions[floorNumber] && labPositions[floorNumber].includes(i)) ? 'Lab' : 'Classroom';
+        let roomName = (roomType === 'Lab') ? `Digital Lab ${i}` : `Classroom ${i}`;
+        let roomData = (roomType === 'Lab') ? {...labTemplate} : {...classroomTemplate};
+        
+        // Special room override if exists
+        const special = floorData[floorNumber]?.special || {};
+        if (special[i]) {
+          roomType = special[i].type;
+          roomName = special[i].name;
+          roomData = special[i];
+        }
+        
+        roomDiv.innerHTML = `<strong>${roomType}</strong><span>Room ${i}</span>`;
+        roomDiv.onclick = function() { showDetail(i, roomType, roomName, roomData); };
+        container.appendChild(roomDiv);
+      }
+    }
+
+    // Transition to detail view for a room
+    function showDetail(roomNumber, roomType, roomName, roomData) {
+      currentRoom = roomNumber;
+      const detail = document.getElementById('detailContent');
+      
+      // Create detailed content with image and specifications
+      let facilitiesHTML = '';
+      if (roomData.facilities && roomData.facilities.length > 0) {
+        facilitiesHTML = roomData.facilities.map(item => `<li>${item}</li>`).join('');
+      }
+      
+      detail.innerHTML = ` 
+        <h2>${roomName}</h2>
+        <p><strong>Room Number:</strong> ${roomNumber}</p>
+        <p><strong>Type:</strong> ${roomType}</p>
+        <div class="room-image" style="background-image: url('${roomData.image || 'placeholder.jpg'}')"></div>
+        <p>${roomData.description}</p>
+        
+        <div class="room-specs">
+          <h3>Room Specifications</h3>
+          <div class="spec-item">
+            <span>Capacity</span>
+            <span>${roomData.capacity} persons</span>
+          </div>
+          <div class="spec-item">
+            <span>Floor</span>
+            <span>${currentFloor}</span>
+          </div>
+          <div class="spec-item">
+            <span>Access</span>
+            <span>Card-controlled</span>
+          </div>
+          <div class="spec-item">
+            <span>Status</span>
+            <span>Operational</span>
+          </div>
+        </div>
+        
+        <h3>Facilities & Equipment</h3>
+        <ul>
+          ${facilitiesHTML}
+        </ul>
+      `;
+      
+      // Slide gridView to left, detailView in from right
+      document.getElementById('gridView').style.transform = 'translateX(-100%)';
+      document.getElementById('detailView').style.transform = 'translateX(0)';
+    }
+
+    // Back from grid view to floor selection
+    function backToFloors() {
+      document.getElementById('floorSelection').style.transform = 'translateX(0)';
+      document.getElementById('gridView').style.transform = 'translateX(100%)';
+    }
+
+    // Back from detail view to grid view
+    function backToGrid() {
+      document.getElementById('detailView').style.transform = 'translateX(100%)';
+      document.getElementById('gridView').style.transform = 'translateX(0)';
+    }
+  </script>
+</body>
+</html>
